@@ -1,284 +1,337 @@
-// ============================================
-// Import Firebase functions
-// ============================================
-import { saveDateSubmission } from './firebase.js';
+// ==========================================
+// Romantic Dating Proposal Website - JavaScript
+// ==========================================
 
-// ============================================
-// Global state to store user selections
-// ============================================
-const dateData = {
+// Initialize EmailJS (Replace with your actual service ID)
+emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
+
+// Global State
+const state = {
     date: null,
     time: null,
     food: null,
-    message: ''
+    message: null,
+    currentPage: 1
 };
 
-// ============================================
 // DOM Elements
-// ============================================
-const steps = {
-    step1: document.getElementById('step1'),
-    step2: document.getElementById('step2'),
-    step3: document.getElementById('step3'),
-    step4: document.getElementById('step4'),
-    step5: document.getElementById('step5'),
-    step6: document.getElementById('step6')
+const pages = {
+    1: document.getElementById('page1'),
+    2: document.getElementById('page2'),
+    3: document.getElementById('page3'),
+    4: document.getElementById('page4'),
+    final: document.getElementById('finalPage')
 };
 
-// ============================================
-// Initialize date picker with minimum date (today)
-// ============================================
-function initializeDatePicker() {
-    const datePicker = document.getElementById('datePicker');
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Format as YYYY-MM-DD for input
-    const minDate = tomorrow.toISOString().split('T')[0];
-    datePicker.min = minDate;
-}
+const gateAnimation = document.getElementById('gateAnimation');
+const gateDoor = document.getElementById('gateDoor');
+const panda = document.getElementById('panda');
+const bgMusic = document.getElementById('bgMusic');
+const muteBtn = document.getElementById('muteBtn');
+const muteIcon = document.getElementById('muteIcon');
 
-// ============================================
-// Step navigation function with smooth transitions
-// ============================================
-function goToStep(currentStep, nextStep) {
-    // Hide current step
-    steps[currentStep].classList.remove('active');
-    
-    // Show next step after a short delay for smooth transition
-    setTimeout(() => {
-        steps[nextStep].classList.add('active');
-    }, 100);
-}
+// ==========================================
+// Background Music Control
+// ==========================================
+let isMuted = true;
 
-// ============================================
-// Step 1: YES button handler
-// ============================================
-document.getElementById('yesBtn').addEventListener('click', () => {
-    goToStep('step1', 'step2');
+muteBtn.addEventListener('click', () => {
+    if (isMuted) {
+        bgMusic.play().catch(e => console.log('Audio play failed:', e));
+        muteIcon.textContent = '🔊';
+        isMuted = false;
+    } else {
+        bgMusic.pause();
+        muteIcon.textContent = '🔇';
+        isMuted = true;
+    }
 });
 
-// ============================================
-// Step 2: Date picker and next button
-// ============================================
+// ==========================================
+// Flying NO Button Logic
+// ==========================================
+const noBtn = document.getElementById('noBtn');
+const yesBtn = document.getElementById('yesBtn');
+
+function moveNoButton() {
+    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    
+    const randomX = Math.max(20, Math.random() * maxX);
+    const randomY = Math.max(20, Math.random() * maxY);
+    
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+    noBtn.style.transition = 'all 0.3s ease-out';
+    noBtn.style.zIndex = '1000';
+}
+
+noBtn.addEventListener('mouseover', moveNoButton);
+noBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    moveNoButton();
+});
+noBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    moveNoButton();
+});
+
+// ==========================================
+// YES Button - Start the Journey
+// ==========================================
+yesBtn.addEventListener('click', () => {
+    // Play music on first interaction
+    if (isMuted) {
+        bgMusic.play().catch(e => console.log('Audio play failed:', e));
+        muteIcon.textContent = '🔊';
+        isMuted = false;
+    }
+    
+    playGateAnimation(() => {
+        showPage(2);
+    });
+});
+
+// ==========================================
+// Panda Gate Animation
+// ==========================================
+function playGateAnimation(callback) {
+    gateAnimation.classList.remove('hidden');
+    gateAnimation.classList.add('flex');
+    
+    // Reset animation
+    gateDoor.style.transform = 'scaleY(1)';
+    panda.style.transform = 'translateX(0) translateX(-50%)';
+    panda.style.opacity = '1';
+    
+    // Step 1: Panda walks to gate
+    setTimeout(() => {
+        panda.style.transform = 'translateX(80px) translateX(-50%)';
+    }, 500);
+    
+    // Step 2: Gate opens
+    setTimeout(() => {
+        gateDoor.style.transform = 'scaleY(0)';
+    }, 1500);
+    
+    // Step 3: Panda enters gate
+    setTimeout(() => {
+        panda.style.transform = 'translateX(120px) translateX(-50%)';
+        panda.style.opacity = '0';
+    }, 2500);
+    
+    // Step 4: Hide animation and show next page
+    setTimeout(() => {
+        gateAnimation.classList.add('hidden');
+        gateAnimation.classList.remove('flex');
+        if (callback) callback();
+    }, 3500);
+}
+
+// ==========================================
+// Page Navigation
+// ==========================================
+function showPage(pageNum) {
+    // Hide all pages
+    Object.values(pages).forEach(page => {
+        page.classList.add('hidden');
+    });
+    
+    // Show target page
+    if (pages[pageNum]) {
+        pages[pageNum].classList.remove('hidden');
+        pages[pageNum].classList.add('fade-in');
+        state.currentPage = pageNum;
+    }
+}
+
+// ==========================================
+// Page 2: Date and Time Selection
+// ==========================================
 const datePicker = document.getElementById('datePicker');
-const dateNextBtn = document.getElementById('dateNextBtn');
+const timeChips = document.querySelectorAll('.time-chip');
+const page2Next = document.getElementById('page2Next');
+
+// Set minimum date to today
+const today = new Date().toISOString().split('T')[0];
+datePicker.min = today;
 
 datePicker.addEventListener('change', (e) => {
-    dateData.date = e.target.value;
+    state.date = e.target.value;
+    checkPage2Complete();
 });
 
-dateNextBtn.addEventListener('click', () => {
-    if (!dateData.date) {
-        alert('Please select a date 💕');
-        return;
-    }
-    goToStep('step2', 'step3');
-});
-
-// ============================================
-// Step 3: Time selection
-// ============================================
-const timeButtons = document.querySelectorAll('.time-btn');
-const timeNextBtn = document.getElementById('timeNextBtn');
-
-timeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Remove selected class from all buttons
-        timeButtons.forEach(b => b.classList.remove('selected'));
-        // Add selected class to clicked button
-        btn.classList.add('selected');
-        // Store selected time
-        dateData.time = btn.dataset.time;
+timeChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+        // Remove selected from all chips
+        timeChips.forEach(c => c.classList.remove('selected'));
+        // Add selected to clicked chip
+        chip.classList.add('selected');
+        state.time = chip.dataset.time;
+        checkPage2Complete();
     });
 });
 
-timeNextBtn.addEventListener('click', () => {
-    if (!dateData.time) {
-        alert('Please select a time 💕');
-        return;
-    }
-    goToStep('step3', 'step4');
-});
-
-// ============================================
-// Step 4: Food selection
-// ============================================
-const foodButtons = document.querySelectorAll('.food-btn');
-const foodNextBtn = document.getElementById('foodNextBtn');
-
-foodButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Remove selected class from all buttons
-        foodButtons.forEach(b => b.classList.remove('selected'));
-        // Add selected class to clicked button
-        btn.classList.add('selected');
-        // Store selected food
-        dateData.food = btn.dataset.food;
-    });
-});
-
-foodNextBtn.addEventListener('click', () => {
-    if (!dateData.food) {
-        alert('Please select a food option 💕');
-        return;
-    }
-    goToStep('step4', 'step5');
-});
-
-// ============================================
-// Step 5: Message input (optional)
-// ============================================
-const messageInput = document.getElementById('messageInput');
-const messageNextBtn = document.getElementById('messageNextBtn');
-
-messageInput.addEventListener('input', (e) => {
-    dateData.message = e.target.value;
-});
-
-messageNextBtn.addEventListener('click', () => {
-    goToStep('step5', 'step6');
-    // Display confirmation and save data
-    displayConfirmation();
-    saveToFirestore();
-});
-
-// ============================================
-// Step 6: Display confirmation details
-// ============================================
-function displayConfirmation() {
-    // Format date for display
-    const dateObj = new Date(dateData.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    
-    document.getElementById('confirmDate').textContent = formattedDate;
-    document.getElementById('confirmTime').textContent = dateData.time;
-    document.getElementById('confirmFood').textContent = dateData.food;
-    
-    // Handle optional message
-    const messageDetail = document.getElementById('messageDetail');
-    if (dateData.message && dateData.message.trim()) {
-        document.getElementById('confirmMessage').textContent = dateData.message;
-        messageDetail.style.display = 'flex';
+function checkPage2Complete() {
+    if (state.date && state.time) {
+        page2Next.disabled = false;
     } else {
-        messageDetail.style.display = 'none';
-    }
-    
-    // Launch confetti animation
-    launchConfetti();
-}
-
-// ============================================
-// Save data to Firebase Firestore
-// ============================================
-async function saveToFirestore() {
-    try {
-        // Add timestamp to data
-        const submissionData = {
-            ...dateData,
-            timestamp: new Date().toISOString()
-        };
-        
-        // Call the save function from firebase.js
-        await saveDateSubmission(submissionData);
-        console.log('Data saved successfully!');
-    } catch (error) {
-        console.error('Error saving data:', error);
+        page2Next.disabled = true;
     }
 }
 
-// ============================================
-// Confetti Animation
-// ============================================
-function launchConfetti() {
-    const canvas = document.getElementById('confettiCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas size
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    
-    // Confetti particles
-    const particles = [];
-    const colors = ['#FFB6C1', '#FF9AAB', '#FF69B4', '#FF1493', '#FFC0CB', '#FFD700'];
-    
-    // Create particles
-    for (let i = 0; i < 150; i++) {
-        particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height - canvas.height,
-            size: Math.random() * 10 + 5,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            speedY: Math.random() * 3 + 2,
-            speedX: Math.random() * 2 - 1,
-            rotation: Math.random() * 360,
-            rotationSpeed: Math.random() * 5 - 2.5
-        });
-    }
-    
-    // Animation loop
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        particles.forEach((particle, index) => {
-            // Update position
-            particle.y += particle.speedY;
-            particle.x += particle.speedX;
-            particle.rotation += particle.rotationSpeed;
-            
-            // Reset particle if it goes off screen
-            if (particle.y > canvas.height) {
-                particle.y = -20;
-                particle.x = Math.random() * canvas.width;
-            }
-            
-            // Draw particle
-            ctx.save();
-            ctx.translate(particle.x, particle.y);
-            ctx.rotate(particle.rotation * Math.PI / 180);
-            ctx.fillStyle = particle.color;
-            ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
-            ctx.restore();
-        });
-        
-        // Continue animation for 5 seconds
-        if (Date.now() - startTime < 5000) {
-            requestAnimationFrame(animate);
-        } else {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-    }
-    
-    const startTime = Date.now();
-    animate();
-}
-
-// ============================================
-// Handle window resize for confetti canvas
-// ============================================
-window.addEventListener('resize', () => {
-    const canvas = document.getElementById('confettiCanvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+page2Next.addEventListener('click', () => {
+    playGateAnimation(() => {
+        showPage(3);
+    });
 });
 
-// ============================================
-// Initialize on page load
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    initializeDatePicker();
-    
-    // Add heart emojis to background
-    const heartsBackground = document.querySelector('.hearts-background');
-    const heartEmojis = ['❤️', '💕', '💖', '💗', '💓', '💝', '💘', '💞'];
-    
-    document.querySelectorAll('.heart').forEach(heart => {
-        heart.textContent = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+// ==========================================
+// Page 3: Food Selection
+// ==========================================
+const foodCards = document.querySelectorAll('.food-card');
+const page3Next = document.getElementById('page3Next');
+
+foodCards.forEach(card => {
+    card.addEventListener('click', () => {
+        // Remove selected from all cards
+        foodCards.forEach(c => c.classList.remove('selected'));
+        // Add selected to clicked card
+        card.classList.add('selected');
+        state.food = card.dataset.food;
+        page3Next.disabled = false;
     });
+});
+
+page3Next.addEventListener('click', () => {
+    playGateAnimation(() => {
+        showPage(4);
+    });
+});
+
+// ==========================================
+// Page 4: Message and Finish
+// ==========================================
+const cuteMessage = document.getElementById('cuteMessage');
+const finishBtn = document.getElementById('finishBtn');
+
+finishBtn.addEventListener('click', () => {
+    state.message = cuteMessage.value.trim();
+    
+    playGateAnimation(() => {
+        showPage('final');
+        displaySummary();
+        startConfetti();
+        sendEmail();
+    });
+});
+
+// ==========================================
+// Final Page: Summary
+// ==========================================
+function displaySummary() {
+    document.getElementById('summaryDate').textContent = formatDate(state.date);
+    document.getElementById('summaryTime').textContent = state.time;
+    document.getElementById('summaryFood').textContent = state.food;
+    document.getElementById('summaryMessage').textContent = state.message || 'No message written 💕';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Not selected';
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+// ==========================================
+// EmailJS Integration
+// ==========================================
+async function sendEmail() {
+    const emailStatus = document.getElementById('emailStatus');
+    emailStatus.classList.remove('hidden', 'email-success', 'email-error');
+    emailStatus.innerHTML = '<div class="loading-spinner mx-auto"></div><p class="mt-2">Sending your message...</p>';
+    
+    const templateParams = {
+        to_email: 'mahin08muntasir09@gmail.com',
+        date: state.date,
+        time: state.time,
+        food: state.food,
+        message: state.message
+    };
+    
+    try {
+        // Replace with your actual EmailJS service ID and template ID
+        await emailjs.send(
+            'YOUR_EMAILJS_SERVICE_ID',
+            'YOUR_EMAILJS_TEMPLATE_ID',
+            templateParams
+        );
+        
+        emailStatus.classList.add('email-success');
+        emailStatus.innerHTML = '✅ Message sent successfully ❤️';
+    } catch (error) {
+        console.error('EmailJS Error:', error);
+        emailStatus.classList.add('email-error');
+        emailStatus.innerHTML = '❌ Something went wrong. Please try again.';
+    }
+}
+
+// ==========================================
+// Floating Hearts Animation
+// ==========================================
+function createFloatingHeart() {
+    const heart = document.createElement('div');
+    heart.className = 'floating-heart';
+    heart.textContent = ['❤️', '💕', '💖', '💗', '💓'][Math.floor(Math.random() * 5)];
+    heart.style.left = Math.random() * 100 + 'vw';
+    heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+    heart.style.fontSize = (Math.random() * 20 + 20) + 'px';
+    
+    document.getElementById('heartsContainer').appendChild(heart);
+    
+    setTimeout(() => {
+        heart.remove();
+    }, 7000);
+}
+
+// Create floating hearts periodically
+setInterval(createFloatingHeart, 500);
+
+// ==========================================
+// Confetti Animation
+// ==========================================
+function startConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#1dd1a1'];
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            confetti.style.width = (Math.random() * 10 + 5) + 'px';
+            confetti.style.height = (Math.random() * 10 + 5) + 'px';
+            confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            
+            container.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 4000);
+        }, i * 30);
+    }
+}
+
+// ==========================================
+// Initialize
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    // Start floating hearts immediately
+    for (let i = 0; i < 5; i++) {
+        setTimeout(createFloatingHeart, i * 200);
+    }
+    
+    console.log('🌸 Romantic Dating Proposal Website Loaded 🌸');
 });

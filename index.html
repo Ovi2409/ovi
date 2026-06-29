@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will you go on a date with me? 💕</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Floating hearts background animation -->
+    <div class="hearts-background">
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+        <div class="heart"></div>
+    </div>
+
+    <!-- Main container with glassmorphism effect -->
+    <div class="container">
+        
+        <!-- Step 1: Initial invitation -->
+        <div class="step active" id="step1">
+            <div class="card">
+                <h1 class="title">🌸 Will you go on a date with me? 🌸</h1>
+                <button class="btn-primary" id="yesBtn">❤️ YES</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Date picker -->
+        <div class="step" id="step2">
+            <div class="card">
+                <h2 class="subtitle">When should we meet?</h2>
+                <input type="date" class="date-picker" id="datePicker" min="">
+                <button class="btn-primary" id="dateNextBtn">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Time selection -->
+        <div class="step" id="step3">
+            <div class="card">
+                <h2 class="subtitle">What time works for you?</h2>
+                <div class="time-options" id="timeOptions">
+                    <button class="time-btn" data-time="12:00 PM">12:00 PM</button>
+                    <button class="time-btn" data-time="1:00 PM">1:00 PM</button>
+                    <button class="time-btn" data-time="2:00 PM">2:00 PM</button>
+                    <button class="time-btn" data-time="3:00 PM">3:00 PM</button>
+                    <button class="time-btn" data-time="4:00 PM">4:00 PM</button>
+                    <button class="time-btn" data-time="5:00 PM">5:00 PM</button>
+                    <button class="time-btn" data-time="6:00 PM">6:00 PM</button>
+                    <button class="time-btn" data-time="7:00 PM">7:00 PM</button>
+                    <button class="time-btn" data-time="8:00 PM">8:00 PM</button>
+                    <button class="time-btn" data-time="8:30 PM">8:30 PM</button>
+                </div>
+                <button class="btn-primary" id="timeNextBtn">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Food selection -->
+        <div class="step" id="step4">
+            <div class="card">
+                <h2 class="subtitle">What are we feeling?</h2>
+                <div class="food-options" id="foodOptions">
+                    <button class="food-btn" data-food="Pizza">🍕 Pizza</button>
+                    <button class="food-btn" data-food="Sushi">🍣 Sushi</button>
+                    <button class="food-btn" data-food="Burger">🍔 Burger</button>
+                    <button class="food-btn" data-food="Pasta">🍝 Pasta</button>
+                    <button class="food-btn" data-food="Tacos">🌮 Tacos</button>
+                    <button class="food-btn" data-food="Ramen">🍜 Ramen</button>
+                </div>
+                <button class="btn-primary" id="foodNextBtn">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Optional message -->
+        <div class="step" id="step5">
+            <div class="card">
+                <h2 class="subtitle">Leave me a cute message 💕</h2>
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Write something sweet..."
+                    rows="4"
+                ></textarea>
+                <button class="btn-primary" id="messageNextBtn">Next →</button>
+            </div>
+        </div>
+
+        <!-- Step 6: Confirmation -->
+        <div class="step" id="step6">
+            <div class="card">
+                <h1 class="success-title">🎉 Yay!!</h1>
+                <div class="confirmation-details">
+                    <h3 class="confirmation-subtitle">Your Date</h3>
+                    <div class="detail-item">
+                        <span class="detail-icon">📅</span>
+                        <span class="detail-text" id="confirmDate">Date</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">🕒</span>
+                        <span class="detail-text" id="confirmTime">Time</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">🍽</span>
+                        <span class="detail-text" id="confirmFood">Food</span>
+                    </div>
+                    <div class="detail-item" id="messageDetail">
+                        <span class="detail-icon">💌</span>
+                        <span class="detail-text" id="confirmMessage">Message</span>
+                    </div>
+                </div>
+                <p class="final-message">I can't wait to see you ❤️</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Confetti canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Load Firebase configuration and main application logic as modules -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
